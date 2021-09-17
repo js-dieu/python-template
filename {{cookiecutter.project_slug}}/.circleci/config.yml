@@ -1,0 +1,68 @@
+version: 2.1
+
+# Pipeline template
+shared: &shared
+    docker:
+        - image: continuumio/miniconda3
+          environment:
+             BASH_ENV: ~/.bashrc
+    working_directory: ~/pipeline_wd.ci
+    steps:
+        - checkout
+        - run:
+            name: "Setup Environment"
+            command: |
+                conda create -n ci ${CI_PYTHON} -c https://conda.anaconda.org/conda-forge -c defaults -c anaconda -y
+                conda install -n ci ${CI_PYTEST} -c https://conda.anaconda.org/conda-forge -c defaults -c anaconda -y
+                conda install -n ci wheel -c https://conda.anaconda.org/conda-forge -c defaults -c anaconda -y
+                conda install -n ci --file requirements.txt -c https://conda.anaconda.org/conda-forge -c defaults -c anaconda -y
+                conda init bash
+        - run:
+            name: "Prepare Project"
+            command: |
+                conda activate ci
+                python setup.py develop
+        - run:
+            name: "Testing"
+            command: |
+                conda init bash
+                conda activate ci
+                mkdir test-results
+                pytest --junit-xml=test-results/junit.xml
+        - store_test_results:
+            path: test-results
+        - store_artifacts:
+            path: test-results
+
+# Workflow definition
+workflows:
+    standard:
+        jobs:
+            {%- for item in ['3.5', '3.6', '3.7', '3.8', '3.9'] %}
+            {%+ if cookiecutter.python_version_min  <=  item <=  cookiecutter.python_version_max %}- {{cookiecutter.project_slug}}-py{{ item.replace('.', '') }}-pytest53 {%endif%}
+            {%- endfor %}
+    nightly:
+        triggers:
+            - schedule:
+                cron: "0 0 * * *"
+                filters:
+                    branches:
+                        only:
+                            - master
+        jobs:
+            - nightly_build
+
+# Jobs definition
+jobs:
+    {% for item in ['3.5', '3.6', '3.7', '3.8', '3.9'] %}
+    {{cookiecutter.project_slug}}-py{{ item.replace('.', '') }}-pytest53:
+        environment:
+            CI_PYTHON: 'python={{ item }}'
+            CI_PYTEST: 'pytest=5.3'
+        <<: *shared
+    {%- endfor %}
+    nightly_build:
+        environment:
+            CI_PYTHON: 'python'
+            CI_PYTEST: 'pytest'
+        <<: *shared
