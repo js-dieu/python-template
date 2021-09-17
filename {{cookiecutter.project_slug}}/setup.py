@@ -55,7 +55,7 @@ setup(
         'Framework :: Pytest',
         'Intended Audience :: {{cookiecutter.intended_audience}}',
         'Programming Language :: Python',
-        'Programming Language :: Python :: {{cookiecutter.python_version_major}}',
+        'Programming Language :: Python :: ' + str("{{cookiecutter.python_version_major}}"),
         {%- for item in range(cookiecutter.python_version_min, cookiecutter.python_version_max + 1): %}
         'Programming Language :: Python :: {{ item }}',
         {%- endfor %}
