@@ -47,7 +47,7 @@ setup(
     description='{{cookiecutter.project_short_description}}',
     long_description=read('README.md'),
     packages=find_packages('.', exclude=('tests', 'example', 'docs')),
-    python_requires='>=3.{{cookiecutter.python_version_min}}',
+    python_requires=f'>=3.{ {{cookiecutter.python_version_min}} }',
     install_requires=get_requirements(),
     options={"bdist_wheel": {"universal": False}},
     classifiers=[
@@ -55,7 +55,7 @@ setup(
         'Framework :: Pytest',
         'Intended Audience :: {{cookiecutter.intended_audience}}',
         'Programming Language :: Python',
-        'Programming Language :: Python :: ' + str("{{cookiecutter.python_version_major}}"),
+        f'Programming Language :: Python :: { {{cookiecutter.python_version_major}} }',
         {%- for item in range(cookiecutter.python_version_min, cookiecutter.python_version_max + 1): %}
         'Programming Language :: Python :: {{ item }}',
         {%- endfor %}
